@@ -136,6 +136,11 @@
             color: white;
         }
         
+        .btn-lessons {
+            background: linear-gradient(to right, #9c27b0, #673ab7);
+            color: white;
+        }
+        
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -239,6 +244,102 @@
             font-family: monospace;
             font-size: 0.95rem;
         }
+        
+        /* Estilos para Modal de Aulas */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a6c, #2a4d69);
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 85%;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #fff;
+        }
+        
+        .lesson-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .lesson-btn {
+            padding: 10px 15px;
+            background: rgba(25, 40, 65, 0.85);
+            border: 2px solid #2a527a;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .lesson-btn:hover, .lesson-btn.active {
+            background: #4fc3f7;
+            border-color: #4fc3f7;
+            color: #000;
+        }
+        
+        .lesson-content {
+            display: none;
+        }
+        
+        .lesson-content.active {
+            display: block;
+        }
+        
+        .step-by-step {
+            background: #0a192f;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .step-title {
+            color: #4fc3f7;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .matrix-display {
+            font-family: monospace;
+            background: #1a3a5a;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        
+        .multiplier-info {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -305,6 +406,10 @@
                 <button id="reset-btn" class="btn-reset">Reiniciar</button>
                 <button id="exit-btn" class="btn-exit">Sair</button>
             </div>
+            
+            <div class="btn-group" style="margin-top: 10px;">
+                <button id="lessons-btn" class="btn-lessons">📚 Aulas Práticas</button>
+            </div>
         </div>
         
         <div class="panel">
@@ -330,7 +435,7 @@
                         </tr>
                     </thead>
                     <tbody id="iterations-body">
-                        <!-- Iterations will be added here -->
+                    
                     </tbody>
                 </table>
             </div>
@@ -349,6 +454,132 @@
         <footer>
             <p>VCN - Visual Cálculo Numérico | Formato Numérico Geral com precisão de 10 casas decimais</p>
         </footer>
+    </div>
+
+    <!-- Modal de Aulas Práticas -->
+    <div id="lessons-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 style="color: #4fc3f7; margin-bottom: 20px;">📚 Aulas Práticas de Cálculo Numérico</h2>
+            
+            <div class="lesson-selector">
+                <button class="lesson-btn active" data-lesson="bisection">Método da Bisseção</button>
+                <button class="lesson-btn" data-lesson="gauss">Eliminação de Gauss</button>
+            </div>
+            
+            <!-- Aula: Método da Bisseção -->
+            <div id="lesson-bisection" class="lesson-content active">
+                <h3 style="color: #4fc3f7;">Método da Bisseção para Zeros de Funções</h3>
+                
+                <div class="step-by-step">
+                    <div class="step-title">📋 Conceito</div>
+                    <p>O Método da Bisseção é usado para encontrar raízes de funções contínuas em um intervalo [a,b] onde f(a) e f(b) têm sinais opostos.</p>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">🎯 Teorema de Bolzano</div>
+                    <p>Se f é contínua em [a,b] e f(a)·f(b) < 0, então existe pelo menos um c ∈ (a,b) tal que f(c) = 0.</p>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">🔄 Algoritmo</div>
+                    <ol>
+                        <li>Verificar se f(a)·f(b) < 0</li>
+                        <li>Calcular x = (a + b) / 2</li>
+                        <li>Se f(a)·f(x) < 0, então b = x</li>
+                        <li>Caso contrário, a = x</li>
+                        <li>Repetir até atingir a precisão desejada</li>
+                    </ol>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">💡 Exemplo Prático</div>
+                    <p>Para f(x) = x² - 4 no intervalo [0, 3]:</p>
+                    <div class="matrix-display">f(0) = -4 < 0
+f(3) = 5 > 0
+Como f(0)·f(3) < 0, existe raiz no intervalo!
+
+Iteração 1: x₁ = (0+3)/2 = 1.5, f(1.5) = -1.75 < 0
+Como f(0)·f(1.5) < 0, novo intervalo: [1.5, 3]
+
+Iteração 2: x₂ = (1.5+3)/2 = 2.25, f(2.25) = 1.0625 > 0
+Como f(1.5)·f(2.25) < 0, novo intervalo: [1.5, 2.25]
+
+E assim por diante...</div>
+                </div>
+            </div>
+            
+            <!-- Aula: Eliminação de Gauss -->
+            <div id="lesson-gauss" class="lesson-content">
+                <h3 style="color: #4fc3f7;">Eliminação de Gauss para Sistemas Lineares</h3>
+                
+                <div class="step-by-step">
+                    <div class="step-title">📋 Conceito</div>
+                    <p>A Eliminação de Gauss resolve sistemas lineares Ax = b através de operações elementares nas linhas da matriz aumentada [A|b].</p>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">🎯 Objetivo</div>
+                    <p>Transformar a matriz A em uma matriz triangular superior usando multiplicadores.</p>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">💡 Exemplo Prático</div>
+                    <p>Sistema 3x3:</p>
+                    <div class="matrix-display">2x₁ + x₂ + x₃ = 5
+x₁ + 3x₂ + 2x₃ = 8
+x₁ + x₂ + 4x₃ = 6
+
+Matriz aumentada inicial:
+[ 2  1  1 | 5 ]
+[ 1  3  2 | 8 ]
+[ 1  1  4 | 6 ]</div>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">🔄 Etapa 1: Eliminação da coluna 1</div>
+                    <div class="multiplier-info">
+                        <strong>Multiplicadores usados:</strong><br>
+                        m₂₁ = a₂₁/a₁₁ = 1/2 = 0.5<br>
+                        m₃₁ = a₃₁/a₁₁ = 1/2 = 0.5
+                    </div>
+                    <div class="matrix-display">L₂ = L₂ - m₂₁·L₁ = L₂ - 0.5·L₁
+L₃ = L₃ - m₃₁·L₁ = L₃ - 0.5·L₁
+
+Resultado:
+[ 2    1    1   | 5   ]
+[ 0   2.5  1.5 | 5.5 ]
+[ 0   0.5  3.5 | 3.5 ]</div>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">🔄 Etapa 2: Eliminação da coluna 2</div>
+                    <div class="multiplier-info">
+                        <strong>Multiplicador usado:</strong><br>
+                        m₃₂ = a₃₂/a₂₂ = 0.5/2.5 = 0.2
+                    </div>
+                    <div class="matrix-display">L₃ = L₃ - m₃₂·L₂ = L₃ - 0.2·L₂
+
+Matriz triangular final:
+[ 2   1    1   | 5   ]
+[ 0  2.5  1.5 | 5.5 ]
+[ 0   0   3.2 | 2.4 ]</div>
+                </div>
+                
+                <div class="step-by-step">
+                    <div class="step-title">📊 Resumo dos Multiplicadores</div>
+                    <div class="multiplier-info">
+                        <strong>Total de multiplicadores utilizados: 3</strong><br>
+                        • Etapa 1: m₂₁ = 0.5, m₃₁ = 0.5<br>
+                        • Etapa 2: m₃₂ = 0.2<br><br>
+                        <strong>Solução por substituição reversa:</strong><br>
+                        x₃ = 2.4/3.2 = 0.75<br>
+                        x₂ = (5.5 - 1.5×0.75)/2.5 = 1.75<br>
+                        x₁ = (5 - 1×1.75 - 1×0.75)/2 = 1.25
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Incluir o arquivo JavaScript -->

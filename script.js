@@ -8,10 +8,17 @@ const calculateBtn = document.getElementById('calculate-btn');
 const newBtn = document.getElementById('new-btn');
 const resetBtn = document.getElementById('reset-btn');
 const exitBtn = document.getElementById('exit-btn');
+const lessonsBtn = document.getElementById('lessons-btn');
 const iterationsBody = document.getElementById('iterations-body');
 const resultValue = document.getElementById('result-value');
 const functionValue = document.getElementById('function-value');
 const errorDisplay = document.getElementById('error-display');
+
+// Elementos do modal de aulas
+const lessonsModal = document.getElementById('lessons-modal');
+const closeModal = document.querySelector('.close');
+const lessonBtns = document.querySelectorAll('.lesson-btn');
+const lessonContents = document.querySelectorAll('.lesson-content');
 
 // Inicialização do gráfico
 const ctx = document.getElementById('function-chart').getContext('2d');
@@ -289,6 +296,88 @@ exitBtn.addEventListener('click', () => {
         window.close();
     }
 });
+
+// Funcionalidades do modal de aulas
+lessonsBtn.addEventListener('click', () => {
+    lessonsModal.style.display = 'block';
+});
+
+closeModal.addEventListener('click', () => {
+    lessonsModal.style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === lessonsModal) {
+        lessonsModal.style.display = 'none';
+    }
+});
+
+// Alternar entre as aulas
+lessonBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Remover classe active de todos os botões e conteúdos
+        lessonBtns.forEach(b => b.classList.remove('active'));
+        lessonContents.forEach(content => content.classList.remove('active'));
+        
+        // Adicionar classe active ao botão clicado
+        btn.classList.add('active');
+        
+        // Mostrar o conteúdo correspondente
+        const lessonId = btn.getAttribute('data-lesson');
+        document.getElementById(`lesson-${lessonId}`).classList.add('active');
+    });
+});
+
+// Função para demonstração da Eliminação de Gauss
+function gaussEliminationDemo() {
+    // Exemplo de sistema 3x3
+    const matrix = [
+        [2, 1, 1, 5],
+        [1, 3, 2, 8],
+        [1, 1, 4, 6]
+    ];
+    
+    const steps = [];
+    let multiplierCount = 0;
+    const multipliers = [];
+    
+    // Cópia da matriz para manipulação
+    const A = matrix.map(row => [...row]);
+    const n = A.length;
+    
+    // Eliminação progressiva
+    for (let k = 0; k < n - 1; k++) {
+        for (let i = k + 1; i < n; i++) {
+            if (A[k][k] !== 0) {
+                const m = A[i][k] / A[k][k];
+                multipliers.push({
+                    row: i + 1,
+                    col: k + 1,
+                    value: m.toFixed(3)
+                });
+                multiplierCount++;
+                
+                for (let j = k; j < n + 1; j++) {
+                    A[i][j] = A[i][j] - m * A[k][j];
+                }
+                
+                steps.push({
+                    step: multiplierCount,
+                    multiplier: m.toFixed(3),
+                    operation: `L${i + 1} = L${i + 1} - ${m.toFixed(3)} * L${k + 1}`,
+                    matrix: A.map(row => [...row])
+                });
+            }
+        }
+    }
+    
+    return {
+        steps: steps,
+        totalMultipliers: multiplierCount,
+        multipliers: multipliers,
+        finalMatrix: A
+    };
+}
 
 // Inicializar o formulário
 resetForm();
