@@ -1,38 +1,254 @@
-// ================================
-// VCM - Visual Cálculo Numérico
-// Frontend JavaScript - Versão Otimizada
-// ================================
 
-// Elementos do DOM - Principais
 const elements = {
-    // Inputs
+    methodOptions: document.querySelectorAll('.method-option'),
+    bisectionPanel: document.getElementById('bisection-panel'),
+    gaussPanel: document.getElementById('gauss-panel'),
+    bisectionResults: document.getElementById('bisection-results'),
+    gaussResults: document.getElementById('gauss-results'),
+    
     functionInput: document.getElementById('function-input'),
     xInitial: document.getElementById('x-initial'),
     xFinal: document.getElementById('x-final'),
     precision: document.getElementById('precision'),
     maxIterations: document.getElementById('max-iterations'),
-    
-    // Botões
     calculateBtn: document.getElementById('calculate-btn'),
-    newBtn: document.getElementById('new-btn'),
     resetBtn: document.getElementById('reset-btn'),
-    exitBtn: document.getElementById('exit-btn'),
-    lessonsBtn: document.getElementById('lessons-btn'),
+    newBtn: document.getElementById('new-btn'),
     
-    // Resultados
+    matrixSize: document.getElementById('matrix-size'),
+    matrixInput: document.getElementById('matrix-input'),
+    showSteps: document.getElementById('show-steps'),
+    pivoting: document.getElementById('pivoting'),
+    solveGaussBtn: document.getElementById('solve-gauss-btn'),
+    resetGaussBtn: document.getElementById('reset-gauss-btn'),
+    newGaussBtn: document.getElementById('new-gauss-btn'),
+    gaussStepsContainer: document.getElementById('gauss-steps-container'),
+    
+    errorDisplay: document.getElementById('error-display'),
+    successMessage: document.getElementById('success-message'),
     iterationsBody: document.getElementById('iterations-body'),
     resultValue: document.getElementById('result-value'),
     functionValue: document.getElementById('function-value'),
-    errorDisplay: document.getElementById('error-display'),
-    successMessage: document.getElementById('success-message'),
     convergenceInfo: document.getElementById('convergence-info'),
     
-    // Modal
+    lessonsBtn: document.getElementById('lessons-btn'),
+    exitBtn: document.getElementById('exit-btn'),
     lessonsModal: document.getElementById('lessons-modal'),
     closeModal: document.querySelector('.close'),
     lessonBtns: document.querySelectorAll('.lesson-btn'),
     lessonContents: document.querySelectorAll('.lesson-content')
 };
+
+let currentMethod = 'bisection';
+
+function switchMethod(method) {
+    currentMethod = method;
+    
+    elements.methodOptions.forEach(option => {
+        option.classList.remove('active');
+        if (option.dataset.method === method) {
+            option.classList.add('active');
+        }
+    });
+    
+    if (method === 'bisection') {
+        elements.bisectionPanel.style.display = 'block';
+        elements.gaussPanel.style.display = 'none';
+        elements.bisectionResults.style.display = 'block';
+        elements.gaussResults.style.display = 'none';
+    } else if (method === 'gauss') {
+        elements.bisectionPanel.style.display = 'none';
+        elements.gaussPanel.style.display = 'block';
+        elements.bisectionResults.style.display = 'none';
+        elements.gaussResults.style.display = 'block';
+        generateMatrixInput();
+    }
+    
+    clearMessages();
+}
+
+function generateMatrixInput() {
+    const size = parseInt(elements.matrixSize.value);
+    const container = elements.matrixInput;
+    
+    container.innerHTML = '';
+    
+    const matrixDiv = document.createElement('div');
+    matrixDiv.className = 'matrix-input';
+    
+    for (let i = 0; i < size; i++) {
+        const row = document.createElement('div');
+        row.className = 'matrix-row';
+        
+        for (let j = 0; j < size; j++) {
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.step = 'any';
+            input.id = `a${i}${j}`;
+            input.placeholder = `a${i+1}${j+1}`;
+            input.value = i === j ? '1' : '0';
+            row.appendChild(input);
+        }
+        
+        const separator = document.createElement('span');
+        separator.className = 'matrix-separator';
+        separator.textContent = '|';
+        row.appendChild(separator);
+        
+        const bInput = document.createElement('input');
+        bInput.type = 'number';
+        bInput.step = 'any';
+        bInput.id = `b${i}`;
+        bInput.placeholder = `b${i+1}`;
+        bInput.value = '1';
+        row.appendChild(bInput);
+        
+        matrixDiv.appendChild(row);
+    }
+    
+    container.appendChild(matrixDiv);
+}
+
+function loadExample(exampleType) {
+    const size = parseInt(elements.matrixSize.value);
+    
+    if (exampleType === 'system1') {
+        const values = [
+            [2, 1, -1, 8],
+            [-3, -1, 2, -11],
+            [-2, 1, 2, -3]
+        ];
+        
+        if (size >= 3) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    document.getElementById(`a${i}${j}`).value = values[i][j];
+                }
+                document.getElementById(`b${i}`).value = values[i][3];
+            }
+        }
+    } else if (exampleType === 'system2') {
+        const values = [
+            [1, 2, 3, 14],
+            [2, -1, 1, 5],
+            [3, 2, -1, 2]
+        ];
+        
+        if (size >= 3) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    document.getElementById(`a${i}${j}`).value = values[i][j];
+                }
+                document.getElementById(`b${i}`).value = values[i][3];
+            }
+        }
+    }
+}
+
+function getMatrixFromInput() {
+    const size = parseInt(elements.matrixSize.value);
+    const matrix = [];
+    
+    for (let i = 0; i < size; i++) {
+        const row = [];
+        
+        for (let j = 0; j < size; j++) {
+            const value = parseFloat(document.getElementById(`a${i}${j}`).value);
+            if (isNaN(value)) {
+                throw new Error(`Valor inválido na posição (${i+1},${j+1})`);
+            }
+            row.push(value);
+        }
+        
+        const bValue = parseFloat(document.getElementById(`b${i}`).value);
+        if (isNaN(bValue)) {
+            throw new Error(`Valor inválido em b${i+1}`);
+        }
+        row.push(bValue);
+        
+        matrix.push(row);
+    }
+    
+    return matrix;
+}
+
+function solveGaussianSystem() {
+    clearMessages();
+    
+    elements.solveGaussBtn.textContent = '⏳ Resolvendo...';
+    elements.solveGaussBtn.disabled = true;
+    
+    setTimeout(() => {
+        try {
+            const matrix = getMatrixFromInput();
+            const showSteps = elements.showSteps.checked;
+            
+            console.log('🎯 Iniciando resolução do sistema:', matrix);
+            
+            const result = gaussElimination(matrix);
+            
+            displayGaussResults(result, showSteps);
+            showSuccess();
+            
+        } catch (error) {
+            console.error('❌ Erro na resolução:', error);
+            showError(error.message);
+        } finally {
+            elements.solveGaussBtn.textContent = '🚀 Resolver Sistema';
+            elements.solveGaussBtn.disabled = false;
+        }
+    }, 100);
+}
+
+function displayGaussResults(result, showSteps) {
+    const container = elements.gaussStepsContainer;
+    container.innerHTML = '';
+    
+    if (showSteps) {
+        result.steps.forEach((step, index) => {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'gauss-step';
+            stepDiv.innerHTML = `
+                <h3>${step.title}</h3>
+                <div class="step-description">${step.description}</div>
+                ${formatMatrix(step.matrix)}
+                ${step.pivotElement ? `<div class="pivot-info">Pivô: ${step.pivotElement}</div>` : ''}
+            `;
+            container.appendChild(stepDiv);
+        });
+    }
+    
+    const solutionDiv = document.createElement('div');
+    solutionDiv.className = 'solution-display';
+    solutionDiv.innerHTML = `
+        <h3>🎯 Solução do Sistema</h3>
+        <div class="solution-vector">
+            ${result.solution.map((x, i) => 
+                `<div class="solution-item">x${i+1} = ${x.toFixed(6)}</div>`
+            ).join('')}
+        </div>
+        ${result.determinant !== null ? 
+            `<div style="text-align: center; margin-top: 15px; color: #a0c4e4;">
+                Determinante: ${result.determinant.toFixed(6)}
+            </div>` : ''}
+    `;
+    container.appendChild(solutionDiv);
+}
+
+function resetGaussForm() {
+    generateMatrixInput();
+    elements.gaussStepsContainer.innerHTML = `
+        <div style="text-align: center; color: #a0c4e4; padding: 20px;">
+            Aguardando sistema para resolver...
+        </div>
+    `;
+    clearMessages();
+}
+
+function newGaussSystem() {
+    resetGaussForm();
+    elements.matrixSize.focus();
+}
 
 
 const ctx = document.getElementById('function-chart').getContext('2d');
@@ -135,15 +351,12 @@ let functionChart = new Chart(ctx, {
     }
 });
 
-// ================================
-// FUNÇÕES UTILITÁRIAS
-// ================================
+
 function showError(message) {
     elements.errorDisplay.textContent = message;
     elements.errorDisplay.style.display = 'block';
     elements.successMessage.style.display = 'none';
     
-    // Animação de shake
     elements.errorDisplay.style.animation = 'shake 0.5s ease-in-out';
     setTimeout(() => {
         elements.errorDisplay.style.animation = '';
@@ -172,23 +385,17 @@ function formatScientific(num, decimals = 4) {
     return Number(num).toExponential(decimals);
 }
 
-// ================================
-// COMPILAÇÃO DE FUNÇÕES
-// ================================
+
 function compileFunction(fnString) {
     try {
-        // Limpar e preparar a string
         const cleanString = fnString.trim().toLowerCase();
         
-        // Verificar se a string não está vazia
         if (!cleanString) {
             throw new Error('Função não pode estar vazia');
         }
         
-        // Compilar usando math.js
         const expr = math.compile(cleanString);
         
-        // Função wrapper com tratamento de erro
         return (x) => {
             try {
                 const result = expr.evaluate({ x: x });
@@ -206,20 +413,15 @@ function compileFunction(fnString) {
     }
 }
 
-// ================================
-// MÉTODO DA BISSEÇÃO - IMPLEMENTAÇÃO OTIMIZADA
-// ================================
 function bisectionMethod(fn, a, b, precision, maxIterations) {
     const iterations = [];
     const startTime = performance.now();
     
-    // Validações iniciais
     if (a >= b) {
         showError("❌ Erro: X inicial deve ser menor que X final");
         return { root: null, iterations: [], stats: null };
     }
     
-    // Verificar Teorema de Bolzano
     let fa, fb;
     try {
         fa = fn(a);
@@ -234,7 +436,6 @@ function bisectionMethod(fn, a, b, precision, maxIterations) {
         return { root: null, iterations: [], stats: null };
     }
     
-    // Verificar se já temos uma raiz nos extremos
     if (Math.abs(fa) < precision) {
         return { 
             root: a, 
@@ -250,7 +451,6 @@ function bisectionMethod(fn, a, b, precision, maxIterations) {
         };
     }
     
-    // Algoritmo principal
     let iteration = 0;
     let error = Math.abs(b - a);
     let xa = a, xb = b;
@@ -269,7 +469,6 @@ function bisectionMethod(fn, a, b, precision, maxIterations) {
             break;
         }
         
-        // Salvar dados da iteração
         iterations.push({
             iteration: iteration,
             xa: xa,
@@ -281,9 +480,7 @@ function bisectionMethod(fn, a, b, precision, maxIterations) {
             error: error
         });
         
-        // Atualizar intervalo usando Teorema de Bolzano
         if (Math.abs(fxn) < precision) {
-            // Encontrou raiz exata
             error = 0;
             break;
         } else if (fxa * fxn < 0) {
@@ -310,9 +507,6 @@ function bisectionMethod(fn, a, b, precision, maxIterations) {
     };
 }
 
-// ================================
-// ATUALIZAÇÃO DO GRÁFICO
-// ================================
 function updateChart(fn, a, b, root, iterations = []) {
     try {
         // Definir intervalo do gráfico
@@ -367,9 +561,6 @@ function updateChart(fn, a, b, root, iterations = []) {
     }
 }
 
-// ================================
-// EXIBIÇÃO DE RESULTADOS
-// ================================
 function displayIterations(iterations) {
     elements.iterationsBody.innerHTML = '';
     
@@ -431,9 +622,6 @@ function displayResults(result, stats) {
     }
 }
 
-// ================================
-// FUNÇÃO PRINCIPAL DE CÁLCULO
-// ================================
 function calculate() {
     clearMessages();
     
@@ -487,9 +675,6 @@ function calculate() {
     }, 100);
 }
 
-// ================================
-// FUNÇÕES AUXILIARES
-// ================================
 function setFunction(fnString) {
     elements.functionInput.value = fnString;
     elements.functionInput.focus();
@@ -551,9 +736,6 @@ function newCalculation() {
     elements.functionInput.focus();
 }
 
-// ================================
-// GERENCIAMENTO DO MODAL
-// ================================
 function openModal() {
     elements.lessonsModal.style.display = 'block';
     elements.lessonsModal.setAttribute('aria-hidden', 'false');
@@ -576,23 +758,180 @@ function switchLesson(lessonId) {
     document.getElementById(`lesson-${lessonId}`).classList.add('active');
 }
 
-// ================================
-// EVENT LISTENERS
-// ================================
+
+function gaussElimination(matrix) {
+    const n = matrix.length;
+    const augmentedMatrix = matrix.map(row => [...row]);
+    const steps = [];
+    
+    console.log('🎯 Iniciando Método da Eliminação de Gauss');
+    
+    steps.push({
+        stage: 0,
+        title: '📋 Matriz Aumentada Inicial [A|b]',
+        matrix: augmentedMatrix.map(row => [...row]),
+        description: 'Sistema linear na forma matricial aumentada'
+    });
+    
+    for (let k = 0; k < n - 1; k++) {
+        console.log(`🔄 Etapa k=${k + 1} - Eliminação da coluna ${k + 1}`);
+        
+        let maxRow = k;
+        for (let i = k + 1; i < n; i++) {
+            if (Math.abs(augmentedMatrix[i][k]) > Math.abs(augmentedMatrix[maxRow][k])) {
+                maxRow = i;
+            }
+        }
+        
+        if (maxRow !== k) {
+            [augmentedMatrix[k], augmentedMatrix[maxRow]] = [augmentedMatrix[maxRow], augmentedMatrix[k]];
+            steps.push({
+                stage: k + 1,
+                title: `🔄 Troca de Linhas L${k + 1} ↔ L${maxRow + 1}`,
+                matrix: augmentedMatrix.map(row => [...row]),
+                description: `Pivotamento: movendo maior elemento para posição (${k + 1},${k + 1})`
+            });
+        }
+        
+        if (Math.abs(augmentedMatrix[k][k]) < 1e-10) {
+            throw new Error(`❌ Sistema singular: pivô zero na posição (${k + 1},${k + 1})`);
+        }
+        
+        for (let i = k + 1; i < n; i++) {
+            const multiplier = augmentedMatrix[i][k] / augmentedMatrix[k][k];
+            
+            for (let j = k; j <= n; j++) {
+                augmentedMatrix[i][j] -= multiplier * augmentedMatrix[k][j];
+            }
+            
+            for (let j = 0; j <= n; j++) {
+                if (Math.abs(augmentedMatrix[i][j]) < 1e-10) {
+                    augmentedMatrix[i][j] = 0;
+                }
+            }
+        }
+        
+        steps.push({
+            stage: k + 1,
+            title: `✅ Etapa k=${k + 1} Concluída`,
+            matrix: augmentedMatrix.map(row => [...row]),
+            description: `Eliminação da coluna ${k + 1}: zeros abaixo de a${k + 1}${k + 1}`,
+            pivotElement: `a${k + 1}${k + 1} = ${augmentedMatrix[k][k].toFixed(4)}`
+        });
+    }
+    
+    steps.push({
+        stage: n,
+        title: '🎯 Matriz Triangular Superior Final',
+        matrix: augmentedMatrix.map(row => [...row]),
+        description: 'Sistema transformado em forma triangular superior, pronto para substituição regressiva'
+    });
+    
+    const solution = new Array(n);
+    
+    for (let i = n - 1; i >= 0; i--) {
+        solution[i] = augmentedMatrix[i][n];
+        
+        for (let j = i + 1; j < n; j++) {
+            solution[i] -= augmentedMatrix[i][j] * solution[j];
+        }
+        
+        solution[i] /= augmentedMatrix[i][i];
+    }
+    
+    return {
+        solution: solution,
+        steps: steps,
+        determinant: calculateDeterminant(matrix),
+        isConsistent: true
+    };
+}
+
+function calculateDeterminant(matrix) {
+    const n = matrix.length;
+    if (n !== matrix[0].length - 1) return null;
+    
+    let det = 1;
+    const temp = matrix.map(row => row.slice(0, -1));
+    
+    for (let k = 0; k < n - 1; k++) {
+        for (let i = k + 1; i < n; i++) {
+            if (Math.abs(temp[k][k]) < 1e-10) return 0;
+            
+            const factor = temp[i][k] / temp[k][k];
+            for (let j = k; j < n; j++) {
+                temp[i][j] -= factor * temp[k][j];
+            }
+        }
+    }
+    
+    for (let i = 0; i < n; i++) {
+        det *= temp[i][i];
+    }
+    
+    return det;
+}
+
+function formatMatrix(matrix, highlightRow = -1, highlightCol = -1) {
+    const n = matrix.length;
+    const m = matrix[0].length;
+    
+    let html = '<div class="matrix-display">';
+    html += '<table class="matrix-table">';
+    
+    for (let i = 0; i < n; i++) {
+        html += '<tr>';
+        for (let j = 0; j < m; j++) {
+            const value = matrix[i][j];
+            const isAugmented = j === m - 1;
+            const isHighlighted = (i === highlightRow || j === highlightCol);
+            
+            let cellClass = 'matrix-cell';
+            if (isAugmented) cellClass += ' augmented-col';
+            if (isHighlighted) cellClass += ' highlighted';
+            if (j === m - 2) cellClass += ' before-augmented';
+            
+            html += `<td class="${cellClass}">`;
+            html += Math.abs(value) < 1e-10 ? '0' : value.toFixed(4);
+            html += '</td>';
+        }
+        html += '</tr>';
+    }
+    
+    html += '</table>';
+    html += '</div>';
+    
+    return html;
+}
+
+function addGaussianMethodToUI() {
+    console.log('🚀 Método da Eliminação de Gauss implementado!');
+    console.log('📚 Baseado na metodologia dos slides da Prof. Tânia Camila Goulart');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Botões principais
+    elements.methodOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            switchMethod(option.dataset.method);
+        });
+    });
+    
     elements.calculateBtn.addEventListener('click', calculate);
     elements.resetBtn.addEventListener('click', resetForm);
     elements.newBtn.addEventListener('click', newCalculation);
-    elements.lessonsBtn.addEventListener('click', openModal);
     
+    elements.matrixSize.addEventListener('change', generateMatrixInput);
+    elements.solveGaussBtn.addEventListener('click', solveGaussianSystem);
+    elements.resetGaussBtn.addEventListener('click', resetGaussForm);
+    elements.newGaussBtn.addEventListener('click', newGaussSystem);
+    
+    elements.lessonsBtn.addEventListener('click', openModal);
     elements.exitBtn.addEventListener('click', () => {
         if (confirm('🚪 Deseja realmente sair do aplicativo?')) {
             window.close();
         }
     });
     
-    // Modal
     elements.closeModal.addEventListener('click', closeModal);
     
     window.addEventListener('click', (event) => {
@@ -601,14 +940,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Tecla ESC para fechar modal
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && elements.lessonsModal.style.display === 'block') {
             closeModal();
         }
     });
     
-    // Seletor de aulas
     elements.lessonBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const lessonId = btn.getAttribute('data-lesson');
@@ -616,23 +953,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Enter para calcular
     elements.functionInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter' && event.ctrlKey) {
             calculate();
         }
     });
     
-    // Inicializar
+    addGaussianMethodToUI();
+    
+    switchMethod('bisection');
     resetForm();
     
-    // Animação inicial
     document.querySelector('.container').style.animation = 'fadeIn 1s ease-out';
+    
+    console.log('🚀 Aplicação VCM inicializada!');
+    console.log('📚 Métodos disponíveis: Bisseção e Eliminação de Gauss');
+    console.log('🎯 Baseado na metodologia dos slides da Prof. Tânia Camila Goulart');
 });
 
-// ================================
-// CSS ANIMATIONS (Adicionado via JavaScript)
-// ================================
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeInRow {
@@ -648,9 +986,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ================================
-// EXPORTAR PARA DEBUG (DESENVOLVIMENTO)
-// ================================
 window.VCM = {
     elements,
     calculate,

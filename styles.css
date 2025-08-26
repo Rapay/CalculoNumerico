@@ -18,6 +18,10 @@
     --text-light: #a0c4e4;
     --text-white: #ffffff;
     --gradient-bg: linear-gradient(135deg, #1a2a6c, #2a4d69);
+    --matrix-bg: rgba(20, 35, 55, 0.9);
+    --matrix-border: #3a5998;
+    --matrix-highlight: rgba(79, 195, 247, 0.3);
+    --augmented-bg: rgba(255, 193, 7, 0.1);
 }
 
 body {
@@ -41,6 +45,323 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🧮 ESTILOS PARA MÉTODO DA ELIMINAÇÃO DE GAUSS */
+.matrix-display {
+    margin: 15px 0;
+    padding: 20px;
+    background: var(--matrix-bg);
+    border-radius: 12px;
+    border: 2px solid var(--matrix-border);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    overflow-x: auto;
+}
+
+.matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 8px;
+    margin: 0 auto;
+    background: transparent;
+}
+
+.matrix-cell {
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1em;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    min-width: 80px;
+}
+
+.matrix-cell:hover {
+    background: rgba(79, 195, 247, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.3);
+}
+
+.matrix-cell.highlighted {
+    background: var(--matrix-highlight);
+    border: 2px solid var(--primary-color);
+    font-weight: bold;
+    animation: pulse 1.5s infinite;
+}
+
+.matrix-cell.augmented-col {
+    background: var(--augmented-bg);
+    border-left: 3px solid var(--warning-color);
+    font-style: italic;
+}
+
+.matrix-cell.before-augmented {
+    border-right: 3px solid var(--warning-color);
+    position: relative;
+}
+
+.matrix-cell.before-augmented::after {
+    content: '|';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--warning-color);
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(79, 195, 247, 0.3);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 0 8px 20px rgba(79, 195, 247, 0.5);
+    }
+}
+
+.gauss-step {
+    margin: 20px 0;
+    padding: 25px;
+    background: var(--panel-bg);
+    border-radius: 15px;
+    border-left: 5px solid var(--primary-color);
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.gauss-step h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gauss-step .step-description {
+    color: var(--text-light);
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.gauss-step .pivot-info {
+    background: rgba(0, 200, 83, 0.2);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    border-left: 3px solid var(--accent-color);
+    font-family: 'Courier New', monospace;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.solution-display {
+    background: linear-gradient(135deg, rgba(0, 200, 83, 0.2), rgba(79, 195, 247, 0.2));
+    padding: 25px;
+    border-radius: 15px;
+    border: 2px solid var(--accent-color);
+    margin: 20px 0;
+    animation: fadeInScale 0.8s ease-out;
+}
+
+.solution-display h3 {
+    color: var(--accent-color);
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.4em;
+}
+
+.solution-vector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.solution-item {
+    background: rgba(0, 200, 83, 0.3);
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid var(--accent-color);
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: center;
+    min-width: 100px;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 🎯 SELETOR DE MÉTODOS */
+.method-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.method-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.method-option:hover {
+    background: rgba(79, 195, 247, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 195, 247, 0.2);
+}
+
+.method-option.active {
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.2), rgba(0, 200, 83, 0.1));
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 25px rgba(79, 195, 247, 0.3);
+}
+
+.method-icon {
+    font-size: 2.5rem;
+    min-width: 60px;
+    text-align: center;
+}
+
+.method-info h3 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.method-info p {
+    color: var(--text-light);
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+/* 🧮 ENTRADA DE MATRIZ */
+.matrix-input-container {
+    background: var(--matrix-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--matrix-border);
+    margin: 15px 0;
+}
+
+.matrix-input {
+    display: grid;
+    gap: 10px;
+    margin: 0 auto;
+    max-width: fit-content;
+}
+
+.matrix-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.matrix-input input {
+    width: 80px;
+    height: 45px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-white);
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.matrix-input input:focus {
+    background: rgba(79, 195, 247, 0.2);
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+}
+
+.matrix-separator {
+    color: var(--warning-color);
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+.matrix-examples {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.example-btn {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 5px;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.example-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(79, 195, 247, 0.3);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label:hover {
+    background: rgba(79, 195, 247, 0.1);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
 }
 
 /* Header */
